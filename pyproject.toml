@@ -1,9 +1,9 @@
 [project]
 name = "uniqpath"
-version = "0.1.0"
+version = "0.1.1"
 description = "Generate unique file or directory paths with flexible formatting."
 authors = [
-    { name = "Ton Nom", email = "ton.email@example.com" }
+    { name = "Julien Rabault", email = "julienrabault@icloud.com" }
 ]
 license = { text = "MIT" }
 readme = "README.md"
@@ -19,4 +19,4 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ton-utilisateur/uniqpath"
+Homepage = "https://github.com/JulienRabault/uniqpath"
