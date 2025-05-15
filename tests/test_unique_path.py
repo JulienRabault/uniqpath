@@ -153,10 +153,64 @@ def test_regression_suffix_on_dir(tmp_path):
     assert p.name.startswith("output_")
     assert not p.exists()
 
-
 def test_regression_path_with_dot_in_name(tmp_path):
     f = tmp_path / "a.b.c.txt"
     f.write_text("data")
     p = unique_path(f, suffix_format="_{num}")
     assert p.suffix == ".txt"
     assert p.name.startswith("a.b.c_")
+
+
+def test_regression_dir_with_dot_in_name(tmp_path):
+    d = tmp_path / "results.v1.0.final"
+    d.mkdir()
+    p = unique_path(d, suffix_format="_{num}")
+    assert p.name.startswith("results.v1.0.final_")
+    assert not p.exists()
+
+
+@pytest.mark.parametrize("filename", [
+    "résumé final.log",
+    "tâche-à-faire.data",
+    "notes (v2).bak",
+    "backup@2024.txt",
+    "report+final=ok.csv",
+    "file with spaces.json",
+    "漢字ファイル.md",
+    "emoji_💾_test.@txt",
+    "data-set#2024!.txt",
+    "données%temp.json",
+    "config&override.conf",
+    "plainfile",
+    "test@file+v3",
+])
+def test_unique_path_file_with_special_characters(tmp_path, filename):
+    f = tmp_path / filename
+    f.write_text("x")
+    p = unique_path(f, suffix_format="_{num}")
+    assert p.suffix == f.suffix
+    assert p.stem.startswith(f.stem)
+    assert not p.exists()
+
+
+@pytest.mark.parametrize("dirname", [
+    "résumé final",
+    "tâche-à-faire",
+    "notes (v2)",
+    "backup@2024",
+    "report+final=ok",
+    "folder with spaces",
+    "漢字フォルダ",
+    "emoji_💾_test",
+    "data-set#2024!",
+    "données%temp",
+    "config&override",
+    "plainfolder",
+    "test@folder+v3",
+])
+def test_unique_path_dir_with_special_characters(tmp_path, dirname):
+    d = tmp_path / dirname
+    d.mkdir()
+    p = unique_path(d, suffix_format="_{num}")
+    assert p.name.startswith(d.name)
+    assert not p.exists()

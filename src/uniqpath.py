@@ -79,8 +79,14 @@ def unique_path(
             logger.info(f"Returning original path: {p}")
         return str(p) if return_str else p
 
-    ext = p.suffix
-    base = p.name[:-len(ext)] if ext else p.name
+    is_file = p.suffix != "" and not p.is_dir()
+
+    if is_file:
+        ext = p.suffix
+        base = p.name[:-len(ext)]
+    else:
+        ext = ""
+        base = p.name
     parent = p.parent
 
     formatter = PlaceholderFormatter(now, extra_vars)
