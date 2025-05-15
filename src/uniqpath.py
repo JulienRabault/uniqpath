@@ -1,11 +1,12 @@
-from pathlib import Path
-from typing import Union, Callable, Dict
-from datetime import datetime
 import logging
-import uuid
 import random
-import string
 import re
+import string
+import uuid
+from datetime import datetime
+from pathlib import Path
+from typing import Union, Dict
+
 
 class PlaceholderFormatter:
     def __init__(self, now: datetime, extra_vars: Dict[str, str]):
@@ -28,6 +29,7 @@ class PlaceholderFormatter:
         fmt = self.rand_regex.sub(self._rand, fmt)
         fmt = self.uuid_regex.sub(self._uuid, fmt)
         return fmt.format(**self.extra_vars)
+
 
 def unique_path(
         path: Union[str, Path],

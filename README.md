@@ -5,7 +5,8 @@ Generate unique file or directory paths by appending customizable suffixes.
 ## Description
 
 `uniqpath` is a lightweight Python utility to generate unique file or directory paths by adding formatted suffixes.  
-It helps avoid overwriting existing files by incrementing numeric suffixes or adding randomized strings, UUIDs, or timestamps.
+It helps avoid overwriting existing files by incrementing numeric suffixes or adding randomized strings, UUIDs, or
+timestamps.
 
 ## Features
 
@@ -50,10 +51,10 @@ p5 = unique_path("file.txt", return_str=True)
 * **path** (`str` or `Path`): The base file or directory path.
 * **suffix\_format** (`str`, default `_{num}`): Suffix pattern with placeholders:
 
-  * `{num}`: incrementing number starting from 1
-  * `{timestamp}`: UNIX timestamp in seconds
-  * `{rand[:n]}`: random alphanumeric string, length `n` (default 6)
-  * `{uuid[:n]}`: UUID4 hex string truncated to `n` chars (default 32)
+    * `{num}`: incrementing number starting from 1
+    * `{timestamp}`: UNIX timestamp in seconds
+    * `{rand[:n]}`: random alphanumeric string, length `n` (default 6)
+    * `{uuid[:n]}`: UUID4 hex string truncated to `n` chars (default 32)
 * **verbose** (`bool`, default `False`): Enable logging of attempts and results.
 * **if\_exists\_only** (`bool`, default `True`): Only add suffix if base path exists.
 * **return\_str** (`bool`, default `False`): Return a string path instead of a `Path` object.
@@ -72,6 +73,3 @@ MIT License
 ## Author
 
 Julien Rabault — [julienrabault@icloud.com](mailto:julienrabault@icloud.com)
-
-```
-```

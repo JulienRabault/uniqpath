@@ -3,9 +3,9 @@ name = "uniqpath"
 version = "0.1.0"
 description = "Generate unique file or directory paths with flexible formatting."
 authors = [
-    {name = "Ton Nom", email = "ton.email@example.com"}
+    { name = "Ton Nom", email = "ton.email@example.com" }
 ]
-license = {text = "MIT"}
+license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
