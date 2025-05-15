@@ -1,6 +1,6 @@
 [project]
 name = "uniqpath"
-version = "0.1.1"
+version = "0.1.3"
 description = "Generate unique file or directory paths with flexible formatting."
 authors = [
     { name = "Julien Rabault", email = "julienrabault@icloud.com" }

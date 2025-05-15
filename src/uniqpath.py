@@ -30,17 +30,18 @@ class PlaceholderFormatter:
         fmt = self.uuid_regex.sub(self._uuid, fmt)
         return fmt.format(**self.extra_vars)
 
-
 def unique_path(
         path: Union[str, Path],
         suffix_format: str = "_{num}",
-        verbose: bool = False,
         if_exists_only: bool = True,
         return_str: bool = False,
+        max_num: int = 50000,
+        verbose: bool = False,
 ) -> Union[Path, str]:
     """
     Generate a unique file or directory path by appending a formatted suffix.
-    The suffix is incremented until a non-existing path is found (if needed).
+    The suffix is incremented until a non-existing path is found or the maximum
+    number of attempts is reached.
 
     Supported placeholders in suffix_format:
         - {num}       : incrementing integer starting from 1
@@ -51,16 +52,22 @@ def unique_path(
     Notes:
         - Concurrency is NOT handled and may cause collisions.
         - Date placeholders replaced literally, no strftime support.
+        - Raises RuntimeError if no unique path is found after max_num attempts.
 
     Args:
         path (str or Path): base path.
         suffix_format (str): suffix format string.
-        verbose (bool): log attempts if True.
         if_exists_only (bool): add suffix only if path exists.
         return_str (bool): return path as string if True.
+        max_num (int): maximum number of suffix attempts (default 50000).
+        verbose (bool): log attempts if True.
 
     Returns:
         Path or str: unique path.
+
+    Raises:
+        RuntimeError: if no unique path is found after max_num attempts.
+        KeyError: if a placeholder in suffix_format is missing in the extra_vars.
     """
     logger = logging.getLogger(__name__)
     if verbose and not logger.hasHandlers():
@@ -92,7 +99,7 @@ def unique_path(
     formatter = PlaceholderFormatter(now, extra_vars)
     num = 1
 
-    while True:
+    while num <= max_num:
         extra_vars['num'] = num
         try:
             suffix = formatter.apply(suffix_format)
@@ -107,3 +114,6 @@ def unique_path(
                 logger.info(f"Found: {candidate}")
             return str(candidate) if return_str else candidate
         num += 1
+
+    raise RuntimeError(
+        f"Failed to find unique path after {max_num} attempts for base path: {p}\n Try to modify the `suffix_format` or `increase max_num`.")
