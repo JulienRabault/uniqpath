@@ -5,13 +5,26 @@ build-backend = "hatchling.build"
 [project]
 name = "uniqpath"
 version = "0.2.0"
-description = "Generate unique file or directory paths with flexible formatting."
+description = "Avoid overwriting files: unique filename or directory paths, atomically reserved for concurrent jobs."
 authors = [{ name = "Julien Rabault", email = "julienrabault@icloud.com" }]
 license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = []
-keywords = ["path", "unique", "file", "directory", "filename", "suffix", "utils"]
+keywords = [
+    "path",
+    "unique",
+    "filename",
+    "unique-filename",
+    "file",
+    "directory",
+    "overwrite",
+    "suffix",
+    "atomic",
+    "concurrency",
+    "filesystem",
+    "cli",
+]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",

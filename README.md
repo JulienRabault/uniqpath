@@ -16,6 +16,12 @@
 
 ---
 
+**uniqpath** gives you a unique filename or directory path in Python, so writing
+`output.txt` twice never overwrites the first one. It can also reserve the path
+atomically, which is what you need when parallel jobs write into the same folder.
+
+---
+
 We have all shipped this function:
 
 ```python
@@ -258,6 +264,26 @@ instead of 50 000 pointless `stat` calls.
   `O_EXCL` guarantees are weaker — a filesystem limitation, not a uniqpath one.
 
 </details>
+
+## Common questions
+
+**How do I avoid overwriting a file in Python?**
+Ask for a free name before you write: `unique_path("output.txt")` returns
+`output_1.txt` once `output.txt` exists. If another process might be writing to
+the same folder, use `reserve_path()` or `uniq_open()` instead — they hold the
+path for you.
+
+**How do I increment a filename if it already exists?**
+That is the default: `_{num}` counts from 1. Use `suffix_format="_{num:03d}"` if
+you want `_001`, `_002`, and so on.
+
+**How do I get a unique filename for every run of a script?**
+`unique_path("run.log", suffix_format="_{date:%Y-%m-%d}_{num:03d}")` for something
+readable, or `_{uuid:8}` when you only care that it never collides.
+
+**How do I create a new output directory per job, without collisions?**
+`reserve_path("results/run", is_dir=True)`, or from the shell:
+`uniqpath results/run --dir --exec -- python train.py --out {}`.
 
 ## Contributing
 
