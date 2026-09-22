@@ -1,0 +1,109 @@
+name: Bump Homebrew tap
+
+# Updates Formula/uniqpath.rb in JulienRabault/homebrew-tap after a release
+# lands on PyPI.
+#
+# Requires a repository secret HOMEBREW_TAP_TOKEN: a fine-grained personal
+# access token scoped to the tap repository only, with "Contents: write".
+# Without that secret the job is skipped, not failed.
+
+on:
+  workflow_run:
+    workflows: ["Publish to PyPI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish to the tap, e.g. 0.2.0"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  bump:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tap token is configured
+        id: guard
+        env:
+          TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          if [ -z "$TAP_TOKEN" ]; then
+            echo "HOMEBREW_TAP_TOKEN is not set; skipping the tap update." >&2
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve the version
+        if: steps.guard.outputs.ready == 'true'
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            version="${{ inputs.version }}"
+          else
+            version=$(python -c "
+          import pathlib, re
+          text = pathlib.Path('pyproject.toml').read_text()
+          print(re.search(r'^version = \"([^\"]+)\"', text, re.M).group(1))
+          ")
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the sdist to be visible on PyPI
+        if: steps.guard.outputs.ready == 'true'
+        id: sha
+        run: |
+          for attempt in 1 2 3 4 5 6; do
+            if digest=$(python packaging/sha256.py "${{ steps.version.outputs.version }}" --quiet 2>/dev/null); then
+              echo "sha256=$digest" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "not on PyPI yet, retrying in 30s (attempt $attempt/6)"
+            sleep 30
+          done
+          echo "sdist never appeared on PyPI" >&2
+          exit 1
+
+      - name: Check out the tap
+        if: steps.guard.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: JulienRabault/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: tap
+
+      - name: Update the formula
+        if: steps.guard.outputs.ready == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          SHA256: ${{ steps.sha.outputs.sha256 }}
+        run: |
+          mkdir -p tap/Formula
+          sed \
+            -e "s|uniqpath-[0-9][^/]*\.tar\.gz|uniqpath-${VERSION}.tar.gz|" \
+            -e "s|sha256 \".*\"|sha256 \"${SHA256}\"|" \
+            packaging/homebrew/uniqpath.rb > tap/Formula/uniqpath.rb
+          grep -E 'url |sha256 ' tap/Formula/uniqpath.rb
+
+      - name: Commit and push
+        if: steps.guard.outputs.ready == 'true'
+        working-directory: tap
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "Formula already up to date."
+            exit 0
+          fi
+          git add Formula/uniqpath.rb
+          git commit -m "uniqpath ${VERSION}"
+          git push

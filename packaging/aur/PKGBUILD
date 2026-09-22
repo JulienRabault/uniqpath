@@ -1,0 +1,35 @@
+# Maintainer: Julien Rabault <julienrabault@icloud.com>
+#
+# PKGBUILD for the Arch User Repository, package name python-uniqpath.
+# See ../README.md for how to publish and update it.
+
+pkgname=python-uniqpath
+_name=uniqpath
+pkgver=0.2.0
+pkgrel=1
+pkgdesc="Generate unique file or directory paths with flexible formatting"
+arch=('any')
+url="https://github.com/JulienRabault/uniqpath"
+license=('MIT')
+depends=('python')
+makedepends=('python-build' 'python-installer' 'python-hatchling' 'python-wheel')
+checkdepends=('python-pytest')
+source=("https://files.pythonhosted.org/packages/source/${_name::1}/${_name}/${_name}-${pkgver}.tar.gz")
+sha256sums=('SHA256_OF_THE_SDIST')
+
+build() {
+  cd "${_name}-${pkgver}"
+  python -m build --wheel --no-isolation
+}
+
+check() {
+  cd "${_name}-${pkgver}"
+  PYTHONPATH=src pytest -q
+}
+
+package() {
+  cd "${_name}-${pkgver}"
+  python -m installer --destdir="$pkgdir" dist/*.whl
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+}

@@ -1,0 +1,60 @@
+name: Publish to PyPI
+
+# Publishes on every GitHub release. Uses PyPI Trusted Publishing, so no
+# API token is stored in the repository:
+#   https://pypi.org/manage/project/uniqpath/settings/publishing/
+#   -> add a publisher for JulienRabault/uniqpath, workflow "publish.yml",
+#      environment "pypi".
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check --strict dist/*
+      - name: Tag must match the version in pyproject.toml
+        if: github.event_name == 'release'
+        run: |
+          python - <<'PY'
+          import os, pathlib, re, sys
+          text = pathlib.Path("pyproject.toml").read_text(encoding="utf-8")
+          version = re.search(r'^version = "([^"]+)"', text, re.M).group(1)
+          tag = os.environ["TAG"].lstrip("v")
+          if version != tag:
+              sys.exit(f"tag {tag!r} does not match pyproject version {version!r}")
+          print(f"version {version} matches tag")
+          PY
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/uniqpath
+    permissions:
+      id-token: write # required for Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1

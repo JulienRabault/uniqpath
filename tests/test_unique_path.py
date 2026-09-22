@@ -153,6 +153,7 @@ def test_regression_suffix_on_dir(tmp_path):
     assert p.name.startswith("output_")
     assert not p.exists()
 
+
 def test_regression_path_with_dot_in_name(tmp_path):
     f = tmp_path / "a.b.c.txt"
     f.write_text("data")
@@ -169,21 +170,24 @@ def test_regression_dir_with_dot_in_name(tmp_path):
     assert not p.exists()
 
 
-@pytest.mark.parametrize("filename", [
-    "résumé final.log",
-    "tâche-à-faire.data",
-    "notes (v2).bak",
-    "backup@2024.txt",
-    "report+final=ok.csv",
-    "file with spaces.json",
-    "漢字ファイル.md",
-    "emoji_💾_test.@txt",
-    "data-set#2024!.txt",
-    "données%temp.json",
-    "config&override.conf",
-    "plainfile",
-    "test@file+v3",
-])
+@pytest.mark.parametrize(
+    "filename",
+    [
+        "résumé final.log",
+        "tâche-à-faire.data",
+        "notes (v2).bak",
+        "backup@2024.txt",
+        "report+final=ok.csv",
+        "file with spaces.json",
+        "漢字ファイル.md",
+        "emoji_💾_test.@txt",
+        "data-set#2024!.txt",
+        "données%temp.json",
+        "config&override.conf",
+        "plainfile",
+        "test@file+v3",
+    ],
+)
 def test_unique_path_file_with_special_characters(tmp_path, filename):
     f = tmp_path / filename
     f.write_text("x")
@@ -193,21 +197,24 @@ def test_unique_path_file_with_special_characters(tmp_path, filename):
     assert not p.exists()
 
 
-@pytest.mark.parametrize("dirname", [
-    "résumé final",
-    "tâche-à-faire",
-    "notes (v2)",
-    "backup@2024",
-    "report+final=ok",
-    "folder with spaces",
-    "漢字フォルダ",
-    "emoji_💾_test",
-    "data-set#2024!",
-    "données%temp",
-    "config&override",
-    "plainfolder",
-    "test@folder+v3",
-])
+@pytest.mark.parametrize(
+    "dirname",
+    [
+        "résumé final",
+        "tâche-à-faire",
+        "notes (v2)",
+        "backup@2024",
+        "report+final=ok",
+        "folder with spaces",
+        "漢字フォルダ",
+        "emoji_💾_test",
+        "data-set#2024!",
+        "données%temp",
+        "config&override",
+        "plainfolder",
+        "test@folder+v3",
+    ],
+)
 def test_unique_path_dir_with_special_characters(tmp_path, dirname):
     d = tmp_path / dirname
     d.mkdir()

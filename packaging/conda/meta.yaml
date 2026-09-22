@@ -1,0 +1,55 @@
+{% set name = "uniqpath" %}
+{% set version = "0.2.0" %}
+
+# Recipe for conda-forge. Submit as a pull request adding
+# recipes/uniqpath/meta.yaml to conda-forge/staged-recipes.
+# See ../README.md for the full procedure.
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  sha256: SHA256_OF_THE_SDIST
+
+build:
+  noarch: python
+  number: 0
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  entry_points:
+    - uniqpath = uniqpath.cli:main
+
+requirements:
+  host:
+    - python >=3.9
+    - hatchling >=1.24
+    - pip
+  run:
+    - python >=3.9
+
+test:
+  imports:
+    - uniqpath
+  commands:
+    - pip check
+    - uniqpath --version
+  requires:
+    - pip
+
+about:
+  home: https://github.com/JulienRabault/uniqpath
+  summary: Generate unique file or directory paths with flexible formatting
+  description: |
+    uniqpath picks the next free name for a file or a directory, with a suffix
+    you control. reserve_path() creates the path atomically, so concurrent
+    workers never receive the same one. No runtime dependencies.
+  license: MIT
+  license_family: MIT
+  license_file: LICENSE
+  doc_url: https://github.com/JulienRabault/uniqpath#readme
+  dev_url: https://github.com/JulienRabault/uniqpath
+
+extra:
+  recipe-maintainers:
+    - JulienRabault

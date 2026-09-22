@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint & types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev]"
+      - name: ruff check
+        run: ruff check .
+      - name: ruff format
+        run: ruff format --check .
+      - name: mypy (strict)
+        run: mypy
+
+  test:
+    name: py${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev]"
+      - name: pytest
+        run: pytest -q --cov=uniqpath --cov-report=xml --cov-report=term
+      - name: Enforce coverage floor
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        run: coverage report --fail-under=90
+
+  build:
+    name: build & verify distribution
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install build twine
+      - run: python -m build
+      - name: twine check
+        run: twine check --strict dist/*
+      - name: Wheel must contain the uniqpath package only
+        run: |
+          python - <<'PY'
+          import glob, zipfile, sys
+          names = zipfile.ZipFile(glob.glob("dist/*.whl")[0]).namelist()
+          stray = [n for n in names if "/" in n and not n.startswith(("uniqpath/", "uniqpath-"))]
+          stray += [n for n in names if "/" not in n]
+          assert not stray, f"unexpected top-level entries in wheel: {stray}"
+          assert "uniqpath/py.typed" in names, "py.typed is missing from the wheel"
+          print("wheel layout OK:", *names, sep="\n  ")
+          PY
+      - name: Install the wheel and smoke-test the CLI
+        run: |
+          pip install dist/*.whl
+          uniqpath --version
+          test "$(uniqpath fresh.txt)" = "fresh.txt"
+          touch fresh.txt
+          test "$(uniqpath fresh.txt)" = "fresh_1.txt"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/

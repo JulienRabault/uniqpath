@@ -1,0 +1,13 @@
+# Normalize to LF in the repository; let git check out native line endings.
+* text=auto eol=lf
+
+# These are consumed by Linux tooling and must stay LF everywhere.
+*.sh          text eol=lf
+*.yml         text eol=lf
+*.yaml        text eol=lf
+*.rb          text eol=lf
+PKGBUILD      text eol=lf
+
+*.png         binary
+*.whl         binary
+*.tar.gz      binary
